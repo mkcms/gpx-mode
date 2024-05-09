@@ -39,6 +39,10 @@
 ;; on a button below a track and it will open a web browser showing that
 ;; route on a map.
 ;;
+;; You can also display elevation profile for each track.  To do that,
+;; click on the [Show elevation profile] button below a track, this will
+;; insert the elevation profile image below the track.
+;;
 ;;
 ;;; Installation
 ;;
@@ -47,13 +51,16 @@
 ;; Additionally, if you want to be able to draw the routes on a map, you
 ;; need to install [folium].
 ;;
+;; In order to display elevation profiles, you need to install
+;; [matplotlib] Python library.
+;;
 ;; These dependencies can be installed on Debian-based systems with:
 ;;
-;; 	sudo apt-get install gpxinfo python3-folium
+;; 	sudo apt-get install gpxinfo python3-folium python3-matplotlib
 ;;
 ;; You can also install them via pip:
 ;;
-;; 	pip install gpx-cmd-tools folium
+;; 	pip install gpx-cmd-tools folium matplotlib
 ;;
 ;;
 ;; [GPX]: https://wiki.openstreetmap.org/wiki/GPX
@@ -61,6 +68,8 @@
 ;; [gpxinfo]: https://github.com/tkrajina/gpx-cmd-tools
 ;;
 ;; [folium]: https://github.com/python-visualization/folium
+;;
+;; [matplotlib]: https://matplotlib.org/
 
 ;;; Code:
 
@@ -210,6 +219,104 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
   'help-echo "mouse-1, RET: Show map")
 
 
+;; Show elevation profile for a route
+
+(defvar gpx-generate-elevation-profile-function
+  #'gpx-generate-elevation-profile-default
+  "Function used to generate an elevation profile of some route.
+It accepts three arguments, the filename, track number and
+segment number and should return an image (from `create-image').")
+
+(defvar gpx-plot-track-elevation-script
+  (expand-file-name "plot_track_elevation.py"
+                    (file-name-directory (or load-file-name
+                                             (buffer-file-name))))
+  "The python script to call to generate an image with an elevation profile.
+The script is passed 4 arguments: input GPX file, track number,
+segment number and output image file.")
+
+(defun gpx-generate-elevation-profile-default (filename track segment)
+  "Generate an image with an elevation profile of TRACK+SEGMENT in FILENAME.
+This should be used as `gpx-generate-elevation-profile-function'."
+  (let ((output (make-temp-file
+                 (format "emacs-gpx-elevation-profile-%d-segment-%d"
+                         track segment)
+                 nil ".png"))
+        exit-code output-buf)
+    (with-temp-buffer
+      (setq exit-code
+            (call-process (or (executable-find "python3")
+                              (executable-find "python"))
+                          nil (current-buffer) nil
+                          gpx-plot-track-elevation-script filename
+                          (number-to-string track) (number-to-string segment)
+                          output))
+      (unless (equal exit-code 0)
+        (setq output-buf (current-buffer))
+        (with-current-buffer (get-buffer-create "*gpx script error*")
+          (text-mode)
+          (read-only-mode 1)
+          (let ((inhibit-read-only t))
+            (replace-buffer-contents output-buf))
+          (display-buffer (current-buffer)))
+        (error "%s failed for %s %s %s"
+               gpx-plot-track-elevation-script filename
+               track segment)))
+    (create-image output)))
+
+(defun gpx-show-elevation-profile (route)
+  "Show elevation profile for route ROUTE.
+ROUTE should be either a cons cell (TRACK . SEGMENT) which should
+be the indices of track/segment to show, or an overlay with
+properties \\='gpx-track and \\='gpx-segment that mean the same."
+  (interactive
+   (list
+    (let ((routes (gpx--collect-routes)))
+      (caddr
+       (assoc
+        (completing-read "Show elevation profile for route: " routes nil t)
+        routes)))))
+  (let (buffer track segment image already-inserted
+               (modified (buffer-modified-p)))
+    (if (overlayp route)
+        (setq buffer (overlay-buffer route)
+              track (overlay-get route 'gpx-track)
+              segment (overlay-get route 'gpx-segment)
+              already-inserted (overlay-get route 'gpx--eprofile-inserted))
+      (setq buffer (current-buffer) track (car route) segment (cdr route)))
+    (unless already-inserted
+      (setq image
+            (funcall gpx-generate-elevation-profile-function
+                     (buffer-file-name buffer) track segment))
+      (cond
+       ((and (overlayp route) (display-images-p))
+        (progn
+          (overlay-put route 'gpx--eprofile-inserted t)
+          (goto-char (overlay-start route))
+          (forward-line 1)
+          (let ((inhibit-read-only t))
+            (open-line 1)
+            (insert-image image)
+            (restore-buffer-modified-p modified))))
+       ((display-images-p)
+        (with-current-buffer (get-buffer-create "*gpx elevation profile*")
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert-image image)
+            (display-buffer (current-buffer)))))
+       ((image-property image :file)
+        (browse-url (concat "file://" (image-property image :file))))
+       (t (error "Can't display elevation profile"))))))
+
+(define-button-type 'gpx-show-elevation-profile
+  'action #'gpx-show-elevation-profile
+  'keymap (let ((map (make-sparse-keymap)))
+            (define-key map [mouse-1] #'push-button)
+            map)
+  'mouse-face 'highlight
+  'help-echo "mouse-1, RET: Show elevation profile")
+
+
 ;; Major mode
 
 (defvar gpx-mode-font-lock-keywords
@@ -253,6 +360,11 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
       (insert (make-string indent ?\ ))
       (insert-button "[Show map]"
                      'type 'gpx-show-map
+                     'gpx-track track
+                     'gpx-segment segment)
+      (insert " ")
+      (insert-button "[Show elevation profile]"
+                     'type 'gpx-show-elevation-profile
                      'gpx-track track
                      'gpx-segment segment)
       (insert "\n\n"))))
@@ -318,6 +430,13 @@ use `gpx-show-map-function' to display that route.  By default,
 the bundled \\='gpx2html.py\\=' script will be invoked that uses
 Python \\='folium\\=' library to draw that route on an OSM map in
 a HTML file.
+
+For each track you can also see it's elevation profile by
+clicking on the [Show elevation profile] button.  This uses
+`gpx-generate-elevation-profile-function' to get the image for a
+particular track.  By default, it will generate an image by
+calling the bundled \\='plot_track_elevation.py\\=' Python
+script.
 
 \\{gpx-mode-map}"
   (setq-local font-lock-defaults '(gpx-mode-font-lock-keywords t))

@@ -13,6 +13,10 @@ It also supports drawing the routes found in the file.  You can click on a
 button below a track and it will open a web browser showing that route on a
 map.
 
+You can also display elevation profile for each track.  To do that, click on
+the [Show elevation profile] button below a track, this will insert the
+elevation profile image below the track.
+
 ## Installation ##
 
 You need to install [gpxinfo][gpxinfo] program in order to convert the files.
@@ -20,13 +24,16 @@ You need to install [gpxinfo][gpxinfo] program in order to convert the files.
 Additionally, if you want to be able to draw the routes on a map, you need to
 install [folium][folium].
 
+In order to display elevation profiles, you need to install
+[matplotlib][matplotlib] Python library.
+
 These dependencies can be installed on Debian-based systems with:
 
-	sudo apt-get install gpxinfo python3-folium
+	sudo apt-get install gpxinfo python3-folium python3-matplotlib
 
 You can also install them via pip:
 
-	pip install gpx-cmd-tools folium
+	pip install gpx-cmd-tools folium matplotlib
 
 ## License ##
 
@@ -56,3 +63,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [gpxinfo]: https://github.com/tkrajina/gpx-cmd-tools
 
 [folium]: https://github.com/python-visualization/folium
+
+[matplotlib]: https://matplotlib.org/
