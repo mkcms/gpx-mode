@@ -29,6 +29,7 @@ readme-to-el:
 	sed README.md -r                                                      \
 	    -e 's/^#+ (.*) #*$$/\n;;; \1/'      `# Rewrite headers`           \
 	    -e '/^.*License.*/,/^<!/d'          `# Delete license`            \
+	    -e '/.*screenshot.png.*/,/^$$/d'    `# Delete screenshot`         \
 	    -e '/^<!--/d'                       `# Remove comments`           \
 	    -e 's/^/;; /'                       `# Add lisp comment char`     \
 	    -e 's/Emacs package/Package/g'      `# It's obviously for Emacs`  \

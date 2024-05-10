@@ -2,6 +2,8 @@
 
 Emacs package that provides a major mode for viewing [GPX][GPX] files.
 
+Preview: [screenshot](./screenshot.png)
+
 The major mode displays .gpx files in a human readable format.  When the major
 mode is active, the buffer displays various statistics about the file and lists
 all the tracks/segments found in the file.
