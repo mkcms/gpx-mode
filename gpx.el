@@ -372,6 +372,18 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
 (defvar gpx-mode-postprocessing-functions '(gpx-mode--postprocess-add-buttons)
   "Hook called after converting a buffer into human readable format.")
 
+(defun gpx-mode--prevent-overwrite ()
+  "Display a warning and error when saving a buffer.
+This hook function prevents accidental overwrite of GPX XML data."
+  (display-warning
+   'gpx
+   (concat
+    "This GPX buffer has been converted to human readable form and "
+    "modified.  Saving the buffer after conversion is forbidden, as "
+    "that would overwrite the original GPX XML data.")
+   :warning)
+  (error "Cannot overwrite GPX file"))
+
 (defun gpx-mode--revert-buffer (&optional ignore-auto noconfirm)
   "Revert current buffer using `gpx-gpxinfo-executable' for GPX conversion.
 IGNORE-AUTO and NOCONFIRM have the same meaning as in
@@ -386,7 +398,9 @@ IGNORE-AUTO and NOCONFIRM have the same meaning as in
         (let ((inhibit-read-only t))
           (funcall gpx-conversion-function)
           (run-hooks 'gpx-mode-postprocessing-functions)
-          (set-buffer-modified-p nil)))
+          (set-buffer-modified-p nil)
+          (add-hook 'write-file-functions
+                    #'gpx-mode--prevent-overwrite nil t)))
     (let ((revert-buffer-function nil))
       (revert-buffer ignore-auto noconfirm))))
 
@@ -397,7 +411,9 @@ IGNORE-AUTO and NOCONFIRM have the same meaning as in
       (erase-buffer)
       (goto-char (point-min))
       (insert-file-contents (buffer-file-name))
-      (set-buffer-modified-p nil))))
+      (set-buffer-modified-p nil)
+      (remove-hook 'write-file-functions
+                   #'gpx-mode--prevent-overwrite t))))
 
 (defun gpx-mode--imenu-create-index ()
   "Return an alist of (STRING . POS-IN-BUFFER) entries for `imenu'.
@@ -454,25 +470,6 @@ script.
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gpx\\'" . gpx-mode))
-
-
-;; Other/workarounds
-
-;;;###autoload
-(defun gpx--file-handler (operation &rest args)
-  "Call OPERATION with ARGS unless it is `write-region'.
-A magic file name handler for GPX files that is only used to make
-sure we never mess up any GPX file by overwriting it.  `gpx-mode'
-should only used for browsing the files."
-  (if (and (eq major-mode 'gpx-mode) (eq operation 'write-region))
-      (error "Cannot save gpx-file")
-    (let ((inhibit-file-name-handlers (cons 'gpx--file-handler
-                                            inhibit-file-name-handlers))
-          (inhibit-file-name-operation operation))
-      (apply operation args))))
-
-;;;###autoload
-(add-to-list 'file-name-handler-alist '("\\.gpx\\'" . gpx--file-handler))
 
 (provide 'gpx)
 ;;; gpx.el ends here
