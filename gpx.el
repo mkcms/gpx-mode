@@ -4,7 +4,7 @@
 
 ;; Author: Michał Krzywkowski <k.michal@zoho.com>
 ;; Keywords: data, tools
-;; Version: n/a
+;; Version: 0.1.0
 ;; Homepage: https://github.com/mkcms/gpx-mode
 ;; Package-Requires: ((emacs "27.1"))
 
