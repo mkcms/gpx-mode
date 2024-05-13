@@ -74,6 +74,8 @@
 ;;; Code:
 
 (require 'browse-url)
+(require 'cl-lib)
+(require 'image)
 (require 'rx)
 
 (defgroup gpx nil "Major mode for GPX files."
