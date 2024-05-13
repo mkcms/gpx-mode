@@ -465,8 +465,7 @@ script.
   (when buffer-file-name
     (revert-buffer nil (not (buffer-modified-p))))
 
-  (read-only-mode 1)
-  (button-mode +1))
+  (read-only-mode 1))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gpx\\'" . gpx-mode))
