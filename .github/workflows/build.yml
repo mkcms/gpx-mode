@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 */12 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs_version:
+          - '27.1'
+          - '28.2'
+          - '29.1'
+          - 'snapshot'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs_version }}
+
+      # Just to make sure they are always installable on Debian.
+      - name: Install dependencies
+        run: sudo apt-get install gpxinfo python3-folium python3-matplotlib
+
+      - name: Compile
+        run: make compile
