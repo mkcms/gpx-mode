@@ -13,7 +13,9 @@ FILL_COMMENTARY := --eval '(progn                                             \
 compile: $(ELC)
 
 %.elc: %.el
-	${emacs} -Q --batch -L . -f batch-byte-compile $<
+	${emacs} -Q --batch -L .                                              \
+	    --eval '(setq byte-compile-error-on-warn t)'                      \
+	    -f batch-byte-compile $<
 
 # Run emacs -Q with gpx.el loaded
 _baremacs: ${ELC}
