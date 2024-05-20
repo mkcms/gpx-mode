@@ -3,19 +3,28 @@ FILES := gpx.el
 ELC := $(FILES:.el=.elc)
 
 # Sexp to fill paragraphs in the commentary section.
-FILL_COMMENTARY := --eval '(progn                                             \
-	(delete-trailing-whitespace)                                          \
-        (setq fill-column 74)                                                 \
-	(fill-individual-paragraphs (search-forward "Commentary:")            \
-	                            (search-forward "Code:"))                 \
+FILL_COMMENTARY := --eval '(progn                                              \
+	(delete-trailing-whitespace)                                           \
+        (setq fill-column 74)                                                  \
+	(fill-individual-paragraphs (search-forward "Commentary:")             \
+	                            (search-forward "Code:"))                  \
 	(save-buffer))'
 
 compile: $(ELC)
 
 %.elc: %.el
-	${emacs} -Q --batch -L .                                              \
-	    --eval '(setq byte-compile-error-on-warn t)'                      \
+	${emacs} -Q --batch -L .                                               \
+	    --eval '(setq byte-compile-error-on-warn t)'                       \
 	    -f batch-byte-compile $<
+
+lint:
+	file=$$(mktemp)                                                        \
+	&& ${emacs} -Q --batch gpx.el                                          \
+		--eval '(checkdoc-file (buffer-file-name))' 2>&1 | tee $$file  \
+	&& test -z "$$(cat $$file)"                                            \
+	&& (grep -n -E "^.{80,}" gpx.el `# Catch long lines`                   \
+	    | sed                                                              \
+		-r 's/^([0-9]+).*/gpx.el:\1: Too long/;q1')
 
 # Run emacs -Q with gpx.el loaded
 _baremacs: ${ELC}
