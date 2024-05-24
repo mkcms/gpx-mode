@@ -23,7 +23,7 @@ with open(filename, 'r') as f:
 
 track_data = gpx.tracks[track]
 segment_data = track_data.segments[segment]
-elevation = [p.elevation for p in segment_data.points]
+elevation = [p.elevation or 0 for p in segment_data.points]
 distance_travelled = list(partial_distances(segment_data.points))
 
 fig, ax = plt.subplots(figsize=(9, 3))
