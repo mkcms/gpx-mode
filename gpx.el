@@ -406,7 +406,7 @@ IGNORE-AUTO and NOCONFIRM have the same meaning as in
     (let ((revert-buffer-function nil))
       (revert-buffer ignore-auto noconfirm))))
 
-(defun gpx-mode--revert-to-xml ()
+(defun gpx-mode--change-major-mode-hook ()
   "Revert the current `gpx-mode' buffer to the original XML form."
   (when (and (buffer-file-name) (not (buffer-modified-p)))
     (let ((inhibit-read-only t))
@@ -415,7 +415,8 @@ IGNORE-AUTO and NOCONFIRM have the same meaning as in
       (insert-file-contents (buffer-file-name))
       (set-buffer-modified-p nil)
       (remove-hook 'write-file-functions
-                   #'gpx-mode--prevent-overwrite t))))
+                   #'gpx-mode--prevent-overwrite t)))
+  (setq revert-buffer-function nil))
 
 (defun gpx-mode--imenu-create-index ()
   "Return an alist of (STRING . POS-IN-BUFFER) entries for `imenu'.
@@ -462,7 +463,7 @@ script.
   (setq-local revert-buffer-function #'gpx-mode--revert-buffer)
   (setq buffer-undo-list t)
 
-  (add-hook 'change-major-mode-hook #'gpx-mode--revert-to-xml nil t)
+  (add-hook 'change-major-mode-hook #'gpx-mode--change-major-mode-hook nil t)
 
   (when buffer-file-name
     (revert-buffer nil (not (buffer-modified-p))))
