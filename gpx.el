@@ -339,9 +339,11 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
     (if (overlay-get button 'gpx--eprofile-inserted)
         (progn
           (goto-char (overlay-get button 'gpx--eprofile-insertion-point))
-          (let ((inhibit-read-only t))
+          (let ((inhibit-read-only t)
+                (modified (buffer-modified-p)))
             (kill-line)
-            (overlay-put button 'gpx--eprofile-inserted nil)))
+            (overlay-put button 'gpx--eprofile-inserted nil)
+            (restore-buffer-modified-p modified)))
       (gpx-show-elevation-profile button))))
 
 (define-button-type 'gpx-toggle-elevation-profile
