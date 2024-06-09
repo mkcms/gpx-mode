@@ -48,8 +48,9 @@
 ;;
 ;; You need to install [gpxinfo] program in order to convert the files.
 ;;
-;; Additionally, if you want to be able to draw the routes on a map, you
-;; need to install [folium].
+;; Additionally, if you want to be able to draw the routes on a map, in
+;; the default way, you need to install [folium].  See Configuration
+;; section below for alternatives.
 ;;
 ;; In order to display elevation profiles, you need to install
 ;; [matplotlib] Python library.
@@ -63,6 +64,20 @@
 ;; 	pip install gpx-cmd-tools folium matplotlib
 ;;
 ;;
+;;; Configuration
+;;
+;; If you want to show the routes inside of Emacs instead of a browser, you can
+;; use [osm] and do:
+;;
+;;     (require 'osm)
+;;     (defun gpx-show-map-osm (file _track _segment)
+;;       (osm-gpx-show file))
+;;     (setq gpx-show-map-function #'gpx-show-map-osm)
+;;
+;; Also, see the documentation of various ``gpx-*-function`` variables for more
+;; configuration options.
+;;
+;;
 ;; [GPX]: https://wiki.openstreetmap.org/wiki/GPX
 ;;
 ;; [gpxinfo]: https://github.com/tkrajina/gpx-cmd-tools
@@ -70,6 +85,8 @@
 ;; [folium]: https://github.com/python-visualization/folium
 ;;
 ;; [matplotlib]: https://matplotlib.org/
+;;
+;; [osm]: https://github.com/minad/osm
 
 ;;; Code:
 

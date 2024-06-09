@@ -7,7 +7,7 @@ FILL_COMMENTARY := --eval '(progn                                              \
 	(delete-trailing-whitespace)                                           \
         (setq fill-column 74)                                                  \
 	(fill-individual-paragraphs (search-forward "Commentary:")             \
-	                            (search-forward "Code:"))                  \
+	                            (search-forward ";;; Configuration"))      \
 	(save-buffer))'
 
 compile: $(ELC)

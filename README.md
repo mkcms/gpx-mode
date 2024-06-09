@@ -23,8 +23,9 @@ elevation profile image below the track.
 
 You need to install [gpxinfo][gpxinfo] program in order to convert the files.
 
-Additionally, if you want to be able to draw the routes on a map, you need to
-install [folium][folium].
+Additionally, if you want to be able to draw the routes on a map, in the
+default way, you need to install [folium][folium].  See Configuration section
+below for alternatives.
 
 In order to display elevation profiles, you need to install
 [matplotlib][matplotlib] Python library.
@@ -36,6 +37,19 @@ These dependencies can be installed on Debian-based systems with:
 You can also install them via pip:
 
 	pip install gpx-cmd-tools folium matplotlib
+
+## Configuration ##
+
+If you want to show the routes inside of Emacs instead of a browser, you can
+use [the OSM package][osm] and do:
+
+    (require 'osm)
+    (defun gpx-show-map-osm (file _track _segment)
+      (osm-gpx-show file))
+    (setq gpx-show-map-function #'gpx-show-map-osm)
+
+Also, see the documentation of various ``gpx-*-function`` variables for more
+configuration options.
 
 ## License ##
 
@@ -67,3 +81,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [folium]: https://github.com/python-visualization/folium
 
 [matplotlib]: https://matplotlib.org/
+
+[osm]: https://github.com/minad/osm
