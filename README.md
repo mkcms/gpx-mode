@@ -16,7 +16,7 @@ button below a track and it will open a web browser showing that route on a
 map.
 
 You can also display elevation profile for each track.  To do that, click on
-the [Show elevation profile] button below a track, this will insert the
+the [Toggle elevation profile] button below a track, this will insert the
 elevation profile image below the track.
 
 ## Installation ##

@@ -40,7 +40,7 @@
 ;; route on a map.
 ;;
 ;; You can also display elevation profile for each track.  To do that,
-;; click on the [Show elevation profile] button below a track, this will
+;; click on the [Toggle elevation profile] button below a track, this will
 ;; insert the elevation profile image below the track.
 ;;
 ;;
@@ -284,20 +284,24 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
         (setq buffer (overlay-buffer route)
               track (overlay-get route 'gpx-track)
               segment (overlay-get route 'gpx-segment)
-              already-inserted (overlay-get route 'gpx--eprofile-inserted))
+              already-inserted (overlay-get route 'gpx--eprofile-inserted)
+              image (overlay-get route 'gpx--eprofile-image))
       (setq buffer (current-buffer) track (car route) segment (cdr route)))
     (unless already-inserted
-      (setq image
-            (funcall gpx-generate-elevation-profile-function
-                     (buffer-file-name buffer) track segment))
+      (unless image
+        (setq image
+              (funcall gpx-generate-elevation-profile-function
+                       (buffer-file-name buffer) track segment)))
       (cond
        ((and (overlayp route) (display-images-p))
         (progn
           (overlay-put route 'gpx--eprofile-inserted t)
+          (overlay-put route 'gpx--eprofile-image image)
           (goto-char (overlay-start route))
           (forward-line 1)
           (let ((inhibit-read-only t))
             (open-line 1)
+            (overlay-put route 'gpx--eprofile-insertion-point (point))
             (insert-image image)
             (restore-buffer-modified-p modified))))
        ((display-images-p)
@@ -310,13 +314,26 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
         (browse-url (concat "file://" (image-property image :file))))
        (t (error "Can't display elevation profile"))))))
 
-(define-button-type 'gpx-show-elevation-profile
-  'action #'gpx-show-elevation-profile
+(defun gpx-toggle-elevation-profile (button)
+  "Show or hide elevation profile for route associated with BUTTON."
+  (unless (overlayp button)
+    (error "Argument should be a button"))
+  (save-excursion
+    (if (overlay-get button 'gpx--eprofile-inserted)
+        (progn
+          (goto-char (overlay-get button 'gpx--eprofile-insertion-point))
+          (let ((inhibit-read-only t))
+            (kill-line)
+            (overlay-put button 'gpx--eprofile-inserted nil)))
+      (gpx-show-elevation-profile button))))
+
+(define-button-type 'gpx-toggle-elevation-profile
+  'action #'gpx-toggle-elevation-profile
   'keymap (let ((map (make-sparse-keymap)))
             (define-key map [mouse-1] #'push-button)
             map)
   'mouse-face 'highlight
-  'help-echo "mouse-1, RET: Show elevation profile")
+  'help-echo "mouse-1, RET: Toggle elevation profile")
 
 
 ;; Major mode
@@ -365,8 +382,8 @@ properties \\='gpx-track and \\='gpx-segment that mean the same."
                      'gpx-track track
                      'gpx-segment segment)
       (insert " ")
-      (insert-button "[Show elevation profile]"
-                     'type 'gpx-show-elevation-profile
+      (insert-button "[Toggle elevation profile]"
+                     'type 'gpx-toggle-elevation-profile
                      'gpx-track track
                      'gpx-segment segment)
       (insert "\n\n"))))
@@ -451,7 +468,7 @@ Python \\='folium\\=' library to draw that route on an OSM map in
 a HTML file.
 
 For each track you can also see it's elevation profile by
-clicking on the [Show elevation profile] button.  This uses
+clicking on the [Toggle elevation profile] button.  This uses
 `gpx-generate-elevation-profile-function' to get the image for a
 particular track.  By default, it will generate an image by
 calling the bundled \\='plot_track_elevation.py\\=' Python
