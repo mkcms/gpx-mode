@@ -94,6 +94,7 @@
 (require 'cl-lib)
 (require 'image)
 (require 'rx)
+(require 'subr-x)
 
 (defgroup gpx nil "Major mode for GPX files."
   :group 'data
@@ -203,7 +204,8 @@ This should be used as `gpx-show-map-function'."
           (text-mode)
           (read-only-mode 1)
           (let ((inhibit-read-only t))
-            (replace-buffer-contents output-buf))
+            (replace-region-contents (point-min) (point-max)
+                                     (lambda () output-buf)))
           (display-buffer (current-buffer)))
         (error "%s failed for %s %s %s" gpx-gpx2html-script filename
                track segment)))
@@ -276,7 +278,8 @@ This should be used as `gpx-generate-elevation-profile-function'."
           (text-mode)
           (read-only-mode 1)
           (let ((inhibit-read-only t))
-            (replace-buffer-contents output-buf))
+            (replace-region-contents (point-min) (point-max)
+                                     (lambda () output-buf)))
           (display-buffer (current-buffer)))
         (error "%s failed for %s %s %s"
                gpx-plot-track-elevation-script filename
