@@ -27,7 +27,7 @@ lint:
 		-r 's/^([0-9]+).*/gpx.el:\1: Too long/;q1')
 
 # Run emacs -Q with gpx.el loaded
-_baremacs: ${ELC}
+sandbox: ${ELC}
 	${emacs} -Q ${PACKAGE_INIT} ${KEYMAP} ${TEST_ARGS}                    \
                 -L . -l gpx
 
