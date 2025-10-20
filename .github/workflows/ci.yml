@@ -29,8 +29,11 @@ jobs:
           version: ${{ matrix.emacs_version }}
 
       # Just to make sure they are always installable on Debian.
-      - name: Install dependencies
+      - name: Install system dependencies
         run: sudo apt-get install gpxinfo python3-folium python3-matplotlib
+
+      - name: Install dependencies
+        run: make deps
 
       - name: Compile
         run: make compile
