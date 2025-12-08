@@ -1,3 +1,17 @@
+2025-12-08  Michał Krzywkowski  <k.michal@zoho.com>
+
+	Version 0.2.0
+
+	- The "Show elevation profile" button now toggles the visibility
+	of the elevation profile image instead, so it can be hidden after
+	it is shown.
+
+	- Fixed an error when plotting elevation profile when there was no
+	elevation data in the file.
+
+	- Fix buffer being incorrectly marked as modified after hiding
+	elevation plot.
+
 2024-05-13  Michał Krzywkowski  <k.michal@zoho.com>
 
 	Version 0.1.0
