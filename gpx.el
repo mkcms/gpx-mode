@@ -134,7 +134,7 @@ of the GPX file.")
   (rx line-start (one-or-more space)
       (group-n 1
         "Track #" (group-n 2 (one-or-more digit))
-        (one-or-more any)
+        (one-or-more not-newline)
         "Segment #" (group-n 3 (one-or-more digit))))
   "A regexp to match track/segment dump in human-readable GPX buffer.
 After inserting human-readable GPX file in the buffer, this
